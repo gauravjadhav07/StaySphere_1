@@ -23,6 +23,5 @@ public class OfflinePaymentRecordDTO {
     @DecimalMin(value = "0.01", message = "Amount must be greater than zero")
     private BigDecimal amount;
 
-    // Optional — e.g. "Cash handed over on 5th", "Paid via UPI directly to owner"
     private String notes;
 }

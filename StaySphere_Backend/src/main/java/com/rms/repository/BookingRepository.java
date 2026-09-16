@@ -23,22 +23,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
 
     List<Booking> findAllByProperty_PropertyId(Long propertyId);
 
-    // Overrides default findAll to eagerly fetch associated Property and Tenant
     @Query(value = "SELECT b FROM Booking b LEFT JOIN FETCH b.property LEFT JOIN FETCH b.tenant",
            countQuery = "SELECT count(b) FROM Booking b")
     Page<Booking> findAll(Pageable pageable);
 
-    // The Admin bookings endpoint filters by status via Specification, which goes through
-    // JpaSpecificationExecutor's findAll(Specification, Pageable) — NOT the findAll(Pageable)
-    // override above. Without this, property/tenant stay LAZY and blow up (or silently
-    // N+1 query) when the DTO mapper touches them. @EntityGraph fetches them eagerly here too.
     @Override
     @EntityGraph(attributePaths = {"property", "tenant"})
     Page<Booking> findAll(Specification<Booking> spec, Pageable pageable);
 
-    // A null endDate is an open-ended stay (occupies the property indefinitely
-    // from startDate onward), so both sides of the overlap check treat a null
-    // endDate as unbounded rather than excluding it.
     @Query("SELECT b FROM Booking b WHERE b.property.propertyId = :propertyId " +
            "AND b.bookingStatus IN :activeStatuses " +
            "AND (b.endDate IS NULL OR b.endDate >= :startDate) " +

@@ -22,9 +22,7 @@ public class TransactionResponseDTO {
     private PaymentType paymentType;
     private PaymentStatus paymentStatus;
     private LocalDateTime paymentDate;
-
-    // NEW
-    private PaymentSource paymentSource;   // ONLINE | OFFLINE
-    private String notes;                  // offline note, if any
-    private String recordedByOwnerName;    // set only for OFFLINE transactions
+    private PaymentSource paymentSource;   
+    private String notes;                  
+    private String recordedByOwnerName;   
 }

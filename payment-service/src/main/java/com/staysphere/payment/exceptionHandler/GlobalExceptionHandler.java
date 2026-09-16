@@ -59,10 +59,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         String correlationId = UUID.randomUUID().toString();
         log.error("Unhandled exception [{}]: {}", correlationId, ex.getMessage(), ex);
-        // Never echo ex.getMessage() back to the client — this service sits behind
-        // the main backend, but the raw message can still carry internal detail
-        // (SQL, Razorpay payloads, stack info). The correlationId ties back to logs.
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+       return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Something went wrong. Please try again or contact support.", correlationId);
     }
 

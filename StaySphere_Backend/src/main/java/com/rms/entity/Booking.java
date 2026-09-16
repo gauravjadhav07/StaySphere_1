@@ -40,7 +40,6 @@ public class Booking extends BaseEntity {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    // Optional by design: an open-ended booking has no end date.
     @Column(name = "end_date")
     private LocalDate endDate;
 }

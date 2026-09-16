@@ -36,8 +36,6 @@ public class PaymentServiceClientImpl implements PaymentServiceClient {
                                                      String razorpayPaymentId,
                                                      String razorpaySignature) {
         try {
-            // The local schema has no column for the microservice's own paymentId,
-            // so it's looked up by transactionRef first, then used to call /verify.
             PaymentServiceResponseDTO existing = paymentServiceRestClient.get()
                     .uri("/api/payments/ref/{transactionRef}", transactionRef)
                     .retrieve()

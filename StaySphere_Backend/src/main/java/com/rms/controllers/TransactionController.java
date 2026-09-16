@@ -24,8 +24,6 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    // Creates the local PENDING transaction + a Razorpay order. dto.amount is
-    // optional and only used for PaymentType.RENT (partial/installment pay).
     @PostMapping("/checkout")
     @PreAuthorize("hasRole('TENANT')")
     public ResponseEntity<TransactionCheckoutResponseDTO> checkout(@Valid @RequestBody TransactionCreateDTO dto,
@@ -34,7 +32,6 @@ public class TransactionController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // Called after Razorpay Checkout completes, with the three values it returns.
     @PostMapping("/{transactionId}/verify")
     @PreAuthorize("hasRole('TENANT')")
     public ResponseEntity<TransactionResponseDTO> verify(@PathVariable Long transactionId,
@@ -43,9 +40,6 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.verifyPayment(transactionId, authentication.getName(), dto));
     }
 
-    // NEW — owner records a payment the tenant made directly to them
-    // (cash/UPI outside the app). OWNER-only: a tenant can never call this,
-    // even for their own booking, so they cannot self-mark a payment as paid.
     @PostMapping("/offline")
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<TransactionResponseDTO> recordOfflinePayment(@Valid @RequestBody OfflinePaymentRecordDTO dto,

@@ -32,7 +32,7 @@ public class RazorpayClientImpl implements RazorpayClient {
         payload.put("amount", amountInPaise);
         payload.put("currency", currency);
         payload.put("receipt", receipt);
-        payload.put("payment_capture", 1); // auto-capture — funds settle immediately once authorized
+        payload.put("payment_capture", 1); 
 
         try {
             Map<String, Object> response = razorpayRestClient.post()

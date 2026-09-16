@@ -18,7 +18,6 @@ public class OwnerDashboardController {
 
     private final OwnerDashboardService ownerDashboardService;
 
-    // No {ownerId} path variable on purpose — the owner can only ever see their own dashboard.
     @GetMapping("/dashboard")
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<OwnerDashboardResponseDTO> getDashboard(Authentication authentication) {

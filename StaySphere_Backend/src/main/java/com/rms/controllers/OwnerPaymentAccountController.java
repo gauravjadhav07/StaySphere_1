@@ -18,7 +18,6 @@ public class OwnerPaymentAccountController {
 
     private final OwnerPaymentAccountService ownerPaymentAccountService;
 
-    // No {ownerId} path variable — an owner can only ever manage their own payout account.
     @GetMapping
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<OwnerPaymentAccountResponseDTO> getMyAccount(Authentication authentication) {

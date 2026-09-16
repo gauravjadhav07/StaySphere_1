@@ -40,11 +40,8 @@ public class BookingServiceImpl implements BookingService {
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final OwnerPaymentAccountRepository ownerPaymentAccountRepository;
-    private final TransactionRepository transactionRepository; // NEW — for payment summary
+    private final TransactionRepository transactionRepository; 
 
-    // Flat token amount used to hold a room before the deposit/rent are
-    // paid. Kept in sync with TransactionServiceImpl's config key so the
-    // amount shown to the tenant always matches what checkout will charge.
     @Value("${payment.token-amount:2000}")
     private BigDecimal tokenAmount;
 
@@ -60,7 +57,6 @@ public class BookingServiceImpl implements BookingService {
         Property property = propertyRepository.findById(dto.getPropertyId())
                 .orElseThrow(() -> new ResourceNotFoundException("Property not found with id: " + dto.getPropertyId()));
 
-        // Inactive properties cannot receive new bookings.
         if (property.getPropertyStatus() != PropertyStatus.ACTIVE) {
             throw new InvalidBookingStateException("Property is not available for booking");
         }
@@ -202,11 +198,6 @@ public class BookingServiceImpl implements BookingService {
         Property property = booking.getProperty();
         Long bookingId = booking.getBookingId();
 
-        // Payment summary — always computed live from Transaction history.
-        // PAYMENT RULE: Token is part of the security deposit, NOT an extra
-        // charge on top of it — TOKEN and DEPOSIT draw from the same pool,
-        // so both count toward amountPaid and toward satisfying the deposit.
-        // Total = Deposit + Rent (never Deposit + Rent + Token).
         BigDecimal totalPayable = property.getRentAmount().add(property.getDepositAmount());
         BigDecimal tokenPaid = transactionRepository.sumSuccessfulAmountByBookingAndType(bookingId, PaymentType.TOKEN);
         BigDecimal depositPaid = transactionRepository.sumSuccessfulAmountByBookingAndType(bookingId, PaymentType.DEPOSIT);
@@ -217,14 +208,10 @@ public class BookingServiceImpl implements BookingService {
             amountPending = BigDecimal.ZERO;
         }
 
-        // Remaining Deposit = Deposit - Token Paid - Deposit Paid, floored at 0.
         BigDecimal remainingDeposit = property.getDepositAmount().subtract(tokenPaid).subtract(depositPaid);
         if (remainingDeposit.compareTo(BigDecimal.ZERO) < 0) {
             remainingDeposit = BigDecimal.ZERO;
         }
-        // Exact amount a "Pay token" action would charge right now — never
-        // more than what's still outstanding on the deposit, and 0 once the
-        // deposit is fully settled (so the UI can hide the token option).
         BigDecimal currentTokenAmount = tokenAmount.min(remainingDeposit);
 
         BookingPaymentStatus paymentStatus;

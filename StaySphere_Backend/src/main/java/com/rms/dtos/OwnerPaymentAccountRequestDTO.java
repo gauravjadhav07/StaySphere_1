@@ -27,7 +27,6 @@ public class OwnerPaymentAccountRequestDTO {
     @Size(max = 150)
     private String bankName;
 
-    // Either a UPI id, or a full bank account (number + IFSC), must be provided.
     @AssertTrue(message = "Provide either a UPI id or a bank account number with IFSC code")
     public boolean isPayoutDetailComplete() {
         boolean hasUpi = upiId != null && !upiId.isBlank();

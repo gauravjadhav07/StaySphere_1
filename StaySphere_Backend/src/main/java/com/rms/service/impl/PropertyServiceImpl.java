@@ -137,9 +137,6 @@ public class PropertyServiceImpl implements PropertyService {
 
         validateOwnership(property, requesterEmail);
 
-        // Deactivating just flips the flag — existing bookings for this
-        // property stay exactly as they are and remain fully accessible.
-        // createBooking() already rejects new bookings once this is INACTIVE.
         property.setPropertyStatus(dto.getPropertyStatus());
         Property updated = propertyRepository.save(property);
         return mapToResponseDTO(updated);
@@ -173,8 +170,6 @@ public class PropertyServiceImpl implements PropertyService {
         int totalRooms = property.getTotalRooms() != null ? property.getTotalRooms() : 1;
         int available;
 
-        // Availability = property ACTIVE + available rooms. An INACTIVE
-        // property shows 0 available regardless of room count.
         if (property.getPropertyStatus() != PropertyStatus.ACTIVE) {
             available = 0;
         } else {

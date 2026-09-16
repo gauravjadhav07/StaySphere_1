@@ -19,9 +19,6 @@ public interface AdminService {
     Page<UserResponseDTO> getAllUsers(Role role, AccountStatus accountStatus, Pageable pageable);
     UserResponseDTO updateUserStatus(Long userId, UserAccountStatusUpdateDTO dto, String adminEmail);
 
-    // Admin sets a new password for a user who's locked out — passwords are
-    // hashed one-way, so there is no "view the password" operation; a reset
-    // is the only safe way to recover access.
     void resetUserPassword(Long userId, AdminPasswordResetDTO dto, String adminEmail);
 
     Page<AuditLogResponseDTO> getAuditLogs(Pageable pageable);

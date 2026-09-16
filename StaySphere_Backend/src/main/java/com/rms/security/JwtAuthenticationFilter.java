@@ -39,9 +39,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = jwtUtil.extractEmail(token);
                 String role = jwtUtil.extractRole(token);
 
-                // A JWT stays cryptographically valid until it expires, but an admin
-                // suspending the account should take effect immediately rather than
-                // only on the next login — so re-check current status per request.
                 boolean isActive = userRepository.findByEmail(email)
                         .map(user -> user.getAccountStatus() == AccountStatus.ACTIVE)
                         .orElse(false);

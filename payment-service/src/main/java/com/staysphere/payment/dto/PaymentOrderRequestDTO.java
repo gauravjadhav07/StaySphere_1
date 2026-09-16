@@ -24,8 +24,6 @@ public class PaymentOrderRequestDTO {
     @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than 0")
     private BigDecimal amount;
 
-    // NEW — the owner payout account this payment must be recorded against.
-    // Required so no payment can ever be created without a real, resolved payee.
     @NotBlank(message = "Payee name is required")
     @Size(max = 150)
     private String payeeName;
@@ -39,6 +37,4 @@ public class PaymentOrderRequestDTO {
     @Size(max = 15)
     private String payeeIfscCode;
 
-    // paymentMethod removed — not needed for Razorpay order creation.
-    // Razorpay presents its own payment method selection in Checkout.
 }

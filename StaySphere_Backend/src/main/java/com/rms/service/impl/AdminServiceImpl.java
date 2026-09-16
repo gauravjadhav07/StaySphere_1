@@ -73,7 +73,6 @@ public class AdminServiceImpl implements AdminService {
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         userRepository.save(user);
 
-        // Never put the new password itself in the audit trail.
         auditLogService.record(adminEmail, Role.ADMIN.name(), "PASSWORD_RESET_BY_ADMIN", "USER", userId,
                 "Password reset for " + user.getEmail());
     }

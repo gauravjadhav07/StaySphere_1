@@ -48,7 +48,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final OwnerPaymentAccountRepository ownerPaymentAccountRepository;
     private final PaymentServiceClient paymentServiceClient;
 
-    // Flat token amount used to hold a room before the deposit/rent are paid.
     @Value("${payment.token-amount:2000}")
     private BigDecimal tokenAmount;
 
@@ -62,7 +61,6 @@ public class TransactionServiceImpl implements TransactionService {
             throw new UnauthorizedActionException("You are not authorized to make payment for this booking");
         }
 
-        // Only PAYMENT_PENDING (owner-approved) bookings may proceed to payment.
         if (booking.getBookingStatus() != BookingStatus.PAYMENT_PENDING) {
             throw new InvalidBookingStateException(
                     "Booking must be approved by the owner before payment. Current status: "
@@ -74,13 +72,11 @@ public class TransactionServiceImpl implements TransactionService {
 
         BigDecimal amount = resolveAmountAndValidate(booking, property, paymentType, dto.getAmount());
 
-        // Payments must always be tied to the property owner's configured payout account.
         OwnerPaymentAccount payoutAccount = ownerPaymentAccountRepository
                 .findByOwner_UserId(property.getOwner().getUserId())
                 .orElseThrow(() -> new InvalidBookingStateException(
                         "This property's owner has not configured a payout account yet. Payment cannot proceed."));
 
-        // Generate transactionRef server-side — not trusted from client.
         String transactionRef = "TXN-" + booking.getBookingId() + "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
 
         PaymentOrderRequestDTO orderRequest = new PaymentOrderRequestDTO();
@@ -106,7 +102,6 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction saved = transactionRepository.save(transaction);
 
-        // Booking stays PAYMENT_PENDING during payment — do NOT move it here.
 
         return TransactionCheckoutResponseDTO.builder()
                 .transactionId(saved.getTransactionId())
@@ -117,15 +112,6 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
     }
 
-    // Server-side amount resolution & validation. The client never dictates
-    // an amount outright — it can only request an amount that is checked
-    // against the true remaining balance computed from successful payments.
-    //
-    // PAYMENT RULE: Token is part of the security deposit, NOT an extra
-    // charge on top of it. TOKEN and DEPOSIT transactions both draw down
-    // the SAME pool (property.depositAmount). e.g. Deposit 10,000 + Rent
-    // 5,000, Token 2,000 paid -> Remaining Deposit 8,000 -> Total = 15,000
-    // (Deposit + Rent), never 17,000.
     private BigDecimal resolveAmountAndValidate(Booking booking, Property property,
                                                  PaymentType paymentType, BigDecimal requestedAmount) {
         Long bookingId = booking.getBookingId();
@@ -151,8 +137,6 @@ public class TransactionServiceImpl implements TransactionService {
             return amount;
         }
 
-        // TOKEN / DEPOSIT — no client-supplied amount honoured; the server
-        // always charges exactly what's outstanding on the deposit pool.
         if (requestedAmount != null) {
             throw new InvalidBookingStateException(
                     "Custom amount is only supported for RENT payments");
@@ -169,17 +153,12 @@ public class TransactionServiceImpl implements TransactionService {
             if (tokenAlreadyPaid) {
                 throw new InvalidBookingStateException("Token has already been paid for this booking");
             }
-            // Token can never exceed what's still owed on the deposit.
             return tokenAmount.min(remainingDeposit);
         }
 
-        // DEPOSIT — pays off whatever remains of the deposit pool after any
-        // token already paid (Remaining Deposit = Deposit - Token Paid).
         return remainingDeposit;
     }
 
-    // Deposit and Token share one pool: the configured deposit amount.
-    // Remaining Deposit = depositAmount - (tokenPaid + depositPaid), floored at 0.
     private BigDecimal calculateRemainingDeposit(Long bookingId, Property property) {
         BigDecimal tokenPaid = transactionRepository.sumSuccessfulAmountByBookingAndType(bookingId, PaymentType.TOKEN);
         BigDecimal depositPaid = transactionRepository.sumSuccessfulAmountByBookingAndType(bookingId, PaymentType.DEPOSIT);
@@ -223,7 +202,6 @@ public class TransactionServiceImpl implements TransactionService {
                     booking.getBookingId(), transaction.getPaymentType(), transactionId);
             confirmBookingIfFullyPaid(booking);
         } else if (paymentResponse.getPaymentStatus() == PaymentStatus.FAILED) {
-            // Keep booking at PAYMENT_PENDING so tenant can retry payment ("Pay Again").
             log.warn("Payment FAILED — booking {} remains PAYMENT_PENDING for retry (transaction {})",
                     booking.getBookingId(), transactionId);
         }
@@ -239,15 +217,10 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + dto.getBookingId()));
 
         User owner = booking.getProperty().getOwner();
-        // Only the property's owner can record an offline payment — a tenant
-        // (or any other user) can never mark their own payment as received.
         if (!owner.getEmail().equalsIgnoreCase(ownerEmail)) {
             throw new UnauthorizedActionException("You are not authorized to record payments for this booking");
         }
 
-        // Offline payment only makes sense once the owner has approved the
-        // booking (payment is expected) or it's already confirmed (paying
-        // off a remaining balance).
         if (booking.getBookingStatus() != BookingStatus.PAYMENT_PENDING
                 && booking.getBookingStatus() != BookingStatus.CONFIRMED) {
             throw new InvalidBookingStateException(
@@ -258,9 +231,6 @@ public class TransactionServiceImpl implements TransactionService {
         PaymentType paymentType = dto.getPaymentType();
         Long bookingId = booking.getBookingId();
 
-        // TOKEN and DEPOSIT share the same pool (the security deposit) — a
-        // token payment reduces what's left of the deposit rather than
-        // adding to the total owed. RENT remains its own independent pool.
         BigDecimal remaining;
         if (paymentType == PaymentType.RENT) {
             BigDecimal alreadyPaid = transactionRepository.sumSuccessfulAmountByBookingAndType(bookingId, PaymentType.RENT);
@@ -300,9 +270,6 @@ public class TransactionServiceImpl implements TransactionService {
         return mapToResponseDTO(saved);
     }
 
-    // A booking is CONFIRMED once both required pools — the deposit pool
-    // (TOKEN + DEPOSIT together, in full) and RENT (in full, however many
-    // installments it took) — have been paid, online or offline.
     private void confirmBookingIfFullyPaid(Booking booking) {
         if (booking.getBookingStatus() == BookingStatus.CONFIRMED) {
             return;

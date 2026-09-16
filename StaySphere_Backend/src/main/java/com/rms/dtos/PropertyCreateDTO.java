@@ -54,9 +54,6 @@ public class PropertyCreateDTO {
     @Pattern(regexp = "^[0-9]{4,10}$", message = "Pincode must be 4-10 digits")
     private String pincode;
 
-    // NEW — number of independently bookable rooms.
-    // Defaults to 1 if not provided (single room, flat).
-    // Set to e.g. 10 for a PG with 10 rooms.
     @Min(value = 1, message = "Total rooms must be at least 1")
     private Integer totalRooms = 1;
 }

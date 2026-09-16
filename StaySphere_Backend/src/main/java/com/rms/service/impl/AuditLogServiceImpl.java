@@ -32,8 +32,6 @@ public class AuditLogServiceImpl implements AuditLogService {
             entry.setDetails(details);
             auditLogRepository.save(entry);
         } catch (Exception ex) {
-            // An audit-log write must never break the real operation it's
-            // recording (e.g. a login or a status update) — log and move on.
             log.error("Failed to write audit log entry for action {}: {}", action, ex.getMessage(), ex);
         }
     }

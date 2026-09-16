@@ -14,8 +14,5 @@ public interface TransactionService {
     TransactionResponseDTO getTransactionById(Long transactionId, String requesterEmail);
     List<TransactionResponseDTO> getTransactionsByBooking(Long bookingId, String requesterEmail);
 
-    // NEW — owner records a payment the tenant made directly to them
-    // (outside the app). OWNER-only; a tenant can never call this for
-    // their own booking.
     TransactionResponseDTO recordOfflinePayment(String ownerEmail, OfflinePaymentRecordDTO dto);
 }

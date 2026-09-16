@@ -23,8 +23,6 @@ public class Payment {
     @Column(name = "payment_id")
     private Long paymentId;
 
-    // External reference to the main StaySphere app's bookings table.
-    // No foreign key — this service has no access to that database.
     @Column(name = "booking_id", nullable = false)
     private Long bookingId;
 
@@ -34,9 +32,6 @@ public class Payment {
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    // FIX: made nullable — the caller no longer sends paymentMethod (Razorpay
-    // Checkout owns method selection), so this must not be NOT NULL or every
-    // createOrder() call throws a PropertyValueException on save.
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", length = 20)
     private PaymentMethod paymentMethod;
@@ -57,9 +52,6 @@ public class Payment {
     @Column(name = "razorpay_signature", length = 255)
     private String razorpaySignature;
 
-    // NEW — the owner payout account this payment is associated with, resolved
-    // by the main backend from OwnerPaymentAccount and passed through here so
-    // every payment is auditable against a real, non-hardcoded account.
     @Column(name = "payee_name", length = 150)
     private String payeeName;
 

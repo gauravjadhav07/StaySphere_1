@@ -10,10 +10,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-// Every endpoint on this service is meant to be called ONLY by the main
-// StaySphere backend, server-to-server — there is no per-user auth here.
-// Without this check, anyone who can reach this port could create Razorpay
-// orders or read any booking's payment history.
 @Component
 public class InternalApiKeyFilter extends OncePerRequestFilter {
 
@@ -25,8 +21,6 @@ public class InternalApiKeyFilter extends OncePerRequestFilter {
                                      HttpServletResponse response,
                                      FilterChain filterChain) throws ServletException, IOException {
 
-        // Razorpay calls the webhook directly — it can't send our internal key,
-        // so that route is authenticated by its own HMAC signature instead.
         if (request.getRequestURI().equals("/api/payments/webhook")) {
             filterChain.doFilter(request, response);
             return;

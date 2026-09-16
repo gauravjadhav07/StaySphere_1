@@ -3,7 +3,16 @@ spring:
     name: StaySphere_Backend
   profiles:
     active: dev
-    
 
 server:
   port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.rms: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/staysphere-backend.log

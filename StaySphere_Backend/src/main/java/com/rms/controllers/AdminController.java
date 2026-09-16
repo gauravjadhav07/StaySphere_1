@@ -23,8 +23,6 @@ import com.rms.enums.PropertyStatus;
 import com.rms.enums.Role;
 import com.rms.service.AdminService;
 
-// Class-level @PreAuthorize applies to every method below, so no route here
-// is reachable without ADMIN role even if someone forgets it on a new method.
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
@@ -48,8 +46,6 @@ public class AdminController {
         return ResponseEntity.ok(adminService.updateUserStatus(userId, dto, authentication.getName()));
     }
 
-    // Passwords are hashed one-way, so there is no "view password" endpoint —
-    // this resets it to a new value the admin gives the (locked-out) user.
     @PutMapping("/users/{userId}/reset-password")
     public ResponseEntity<Void> resetUserPassword(@PathVariable Long userId,
                                                     @Valid @RequestBody AdminPasswordResetDTO dto,

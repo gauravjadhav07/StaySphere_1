@@ -43,8 +43,6 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentOrderResponseDTO createOrder(PaymentOrderRequestDTO dto) {
-        // Fail fast on a duplicate transaction reference before ever calling
-        // out to Razorpay — no point creating an external order we'd discard.
         if (paymentRepository.existsByTransactionRef(dto.getTransactionRef())) {
             throw new DuplicateTransactionException(
                     "Transaction reference already exists: " + dto.getTransactionRef());
@@ -63,12 +61,8 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setBookingId(dto.getBookingId());
         payment.setTransactionRef(dto.getTransactionRef());
         payment.setAmount(dto.getAmount());
-        // paymentMethod no longer set — nullable in entity, Razorpay Checkout owns method selection
         payment.setPaymentStatus(PaymentStatus.PENDING);
         payment.setRazorpayOrderId(order.id());
-        // Payee (owner payout account) details resolved by the main backend from
-        // OwnerPaymentAccount — persisted here so every payment is auditable
-        // against a real, non-hardcoded account.
         payment.setPayeeName(dto.getPayeeName());
         payment.setPayeeUpiId(dto.getPayeeUpiId());
         payment.setPayeeBankAccountNumber(dto.getPayeeBankAccountNumber());
@@ -183,7 +177,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .bookingId(payment.getBookingId())
                 .transactionRef(payment.getTransactionRef())
                 .amount(payment.getAmount())
-                // paymentMethod intentionally omitted — nullable, not meaningful post-Razorpay
                 .paymentStatus(payment.getPaymentStatus())
                 .paymentDate(payment.getPaymentDate())
                 .build();

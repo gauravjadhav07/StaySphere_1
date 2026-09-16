@@ -15,7 +15,6 @@ public class PaymentServiceResponseDTO {
     private Long bookingId;
     private String transactionRef;
     private BigDecimal amount;
-    // paymentMethod removed to match payment-service's PaymentResponseDTO
     private PaymentStatus paymentStatus;
     private LocalDateTime paymentDate;
 }

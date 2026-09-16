@@ -5,9 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Append-only trail of sensitive/admin actions (logins, admin password resets,
-// account status changes). Never write a raw password or full token into
-// this table — only who did what, to which record, and when.
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,11 +23,9 @@ public class AuditLog extends BaseEntity {
     @Column(name = "actor_role", length = 20)
     private String actorRole;
 
-    // e.g. LOGIN_SUCCESS, LOGIN_FAILED, USER_STATUS_UPDATED, PASSWORD_RESET_BY_ADMIN
     @Column(name = "action", nullable = false, length = 50)
     private String action;
 
-    // e.g. "USER", target_id = the affected user's id. Null for actions with no single target.
     @Column(name = "target_type", length = 30)
     private String targetType;
 

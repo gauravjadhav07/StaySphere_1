@@ -26,30 +26,21 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    // Step 1: create a local PENDING payment + a Razorpay order.
-    // Called by the main StaySphere backend when a tenant clicks "Pay now".
     @PostMapping("/orders")
     public ResponseEntity<PaymentOrderResponseDTO> createOrder(@Valid @RequestBody PaymentOrderRequestDTO dto) {
         log.info("Creating payment order for booking {} (ref {})", dto.getBookingId(), dto.getTransactionRef());
         return new ResponseEntity<>(paymentService.createOrder(dto), HttpStatus.CREATED);
     }
 
-    // Step 2: verifies the signature Razorpay Checkout returned to the frontend.
     @PostMapping("/verify")
     public ResponseEntity<PaymentResponseDTO> verify(@Valid @RequestBody PaymentVerifyRequestDTO dto) {
         return ResponseEntity.ok(paymentService.verifyPayment(dto));
     }
 
-    // Step 3: Razorpay calls this server-to-server as a backstop, independent of
-    // whether the frontend's /verify call ever fires.
     @PostMapping("/webhook")
     public ResponseEntity<Void> webhook(HttpServletRequest request,
                                          @RequestHeader(value = "X-Razorpay-Signature", required = false) String signature) throws Exception {
-        // Read the exact raw bytes Razorpay sent — the HMAC is computed over the
-        // literal request body, so reconstructing it via BufferedReader.lines()
-        // (which drops the original line terminators and rejoins with the
-        // platform default) would silently break signature verification for
-        // any payload containing embedded newlines.
+ 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         try (var inputStream = request.getInputStream()) {
             inputStream.transferTo(buffer);

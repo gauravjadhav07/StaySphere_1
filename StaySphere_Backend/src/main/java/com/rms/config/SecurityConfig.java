@@ -36,20 +36,18 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public APIs
                         .requestMatchers(
                                 "/api/users/register",
                                 "/api/users/login"
                         ).permitAll()
 
-                        // Public Property APIs
                         .requestMatchers(HttpMethod.GET,
                                 "/api/properties",
                                 "/api/properties/**",
                                 "/api/properties/search"
                         ).permitAll()
 
-                        // Swagger (optional)
+                    
                         .requestMatchers(
                                  "/swagger-ui/**",
                             "/swagger-ui.html",
@@ -59,7 +57,7 @@ public class SecurityConfig {
                             "/webjars/**"
                         ).permitAll()
 
-                        // Everything else requires JWT
+                        
                         .anyRequest().authenticated()
                 )
 
@@ -77,11 +75,6 @@ public class SecurityConfig {
                 "http://localhost:5173"
         ));
 
-        // PATCH added — the Activate/Deactivate property status update uses
-        // PATCH /api/properties/{id}/status, and without it here the
-        // browser's CORS preflight rejects the request before it ever
-        // reaches the controller (this was the "Could not update this
-        // property's status" failure).
         config.setAllowedMethods(List.of(
                 "GET",
                 "POST",

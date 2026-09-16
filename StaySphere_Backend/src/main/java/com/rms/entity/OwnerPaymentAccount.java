@@ -17,8 +17,6 @@ public class OwnerPaymentAccount extends BaseEntity {
     @Column(name = "owner_payment_account_id")
     private Long ownerPaymentAccountId;
 
-    // One payout account per owner. Every property owned by this user pays
-    // out to this account — no per-payment/random account is ever used.
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false, unique = true)
     private User owner;

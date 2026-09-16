@@ -17,7 +17,6 @@ public class PaymentResponseDTO {
     private Long bookingId;
     private String transactionRef;
     private BigDecimal amount;
-    // paymentMethod removed — Razorpay manages method selection
     private PaymentStatus paymentStatus;
     private LocalDateTime paymentDate;
 }

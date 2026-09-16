@@ -10,9 +10,6 @@ spring:
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    # This microservice owns its schema (unlike the main StaySphere backend, which is
-    # database-first against a schema someone else maintains) — safe to let Hibernate
-    # manage its one small table.
     hibernate:
       ddl-auto: update
     show-sql: true

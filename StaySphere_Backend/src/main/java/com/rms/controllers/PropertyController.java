@@ -69,8 +69,7 @@ public class PropertyController {
 			@Valid @RequestBody PropertyUpdateDTO dto, Authentication authentication) {
 		return ResponseEntity.ok(propertyService.updateProperty(propertyId, authentication.getName(), dto));
 	}
-
-	// NEW — owner activates/deactivates their property.
+	
 	@PatchMapping("/{propertyId}/status")
 	@PreAuthorize("hasRole('OWNER')")
 	public ResponseEntity<PropertyResponseDTO> updatePropertyStatus(@PathVariable Long propertyId,
